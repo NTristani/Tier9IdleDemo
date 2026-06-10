@@ -7,10 +7,13 @@ public class AutoCombatController : MonoBehaviour
 
     [Header("Combat")]
     [SerializeField] private float attackRange = 1.5f;
-    [SerializeField] private float attacksPerSecond = 1f;
+    [SerializeField] private float baseAttacksPerSecond = 1f;
+    [SerializeField] private float attackSpeedBonus = 0f;
     [SerializeField] private LayerMask enemyLayer;
 
     private float attackCooldown;
+
+    public float AttacksPerSecond => baseAttacksPerSecond + attackSpeedBonus;
 
     private void Awake()
     {
@@ -18,6 +21,11 @@ public class AutoCombatController : MonoBehaviour
         {
             playerStats = GetComponent<PlayerStats>();
         }
+    }
+
+    private void Start()
+    {
+        BroadcastCombatStats();
     }
 
     private void Update()
@@ -37,6 +45,17 @@ public class AutoCombatController : MonoBehaviour
         }
 
         Attack(target);
+    }
+
+    public void AddAttackSpeedBonus(float amount)
+    {
+        if (amount <= 0f)
+        {
+            return;
+        }
+
+        attackSpeedBonus += amount;
+        BroadcastCombatStats();
     }
 
     private Enemy FindNearestEnemy()
@@ -69,8 +88,22 @@ public class AutoCombatController : MonoBehaviour
 
     private void Attack(Enemy target)
     {
-        attackCooldown = 1f / attacksPerSecond;
+        float safeAttacksPerSecond = Mathf.Max(0.1f, AttacksPerSecond);
+        attackCooldown = 1f / safeAttacksPerSecond;
+
         target.TakeDamage(playerStats.Damage);
+
+        BroadcastCombatStats();
+    }
+
+    private void BroadcastCombatStats()
+    {
+        if (playerStats == null)
+        {
+            return;
+        }
+
+        GameEvents.RaiseCombatStatsChanged(playerStats.Damage, AttacksPerSecond);
     }
 
     private void OnDrawGizmosSelected()

@@ -11,6 +11,9 @@ public static class GameEvents
     public static event Action<ItemDefinition, int> ItemCollected;
     public static event Action<ItemDefinition, int> InventoryChanged;
 
+    public static event Action<int, float> CombatStatsChanged;
+    public static event Action<UpgradeDefinition, int> UpgradeLevelChanged;
+
     public static void RaisePlayerStatsChanged(int level, int currentXp, int requiredXp)
     {
         PlayerStatsChanged?.Invoke(level, currentXp, requiredXp);
@@ -43,5 +46,15 @@ public static class GameEvents
     public static void RaiseInventoryChanged(ItemDefinition item, int newAmount)
     {
         InventoryChanged?.Invoke(item, newAmount);
+    }
+
+    public static void RaiseCombatStatsChanged(int damage, float attacksPerSecond)
+    {
+        CombatStatsChanged?.Invoke(damage, attacksPerSecond);
+    }
+
+    public static void RaiseUpgradeLevelChanged(UpgradeDefinition upgrade, int newLevel)
+    {
+        UpgradeLevelChanged?.Invoke(upgrade, newLevel);
     }
 }

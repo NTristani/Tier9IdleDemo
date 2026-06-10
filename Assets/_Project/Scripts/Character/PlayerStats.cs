@@ -9,11 +9,12 @@ public class PlayerStats : MonoBehaviour
 
     [Header("Combat Stats")]
     [SerializeField] private int baseDamage = 2;
+    [SerializeField] private int upgradeDamageBonus = 0;
 
     public int Level => level;
     public int CurrentXp => currentXp;
     public int RequiredXp => GetRequiredXpForCurrentLevel();
-    public int Damage => baseDamage + level;
+    public int Damage => baseDamage + level + upgradeDamageBonus;
 
     private void OnEnable()
     {
@@ -50,6 +51,17 @@ public class PlayerStats : MonoBehaviour
             level++;
         }
 
+        BroadcastStats();
+    }
+
+    public void AddDamageBonus(int amount)
+    {
+        if (amount <= 0)
+        {
+            return;
+        }
+
+        upgradeDamageBonus += amount;
         BroadcastStats();
     }
 
