@@ -11,6 +11,13 @@ public class UpgradeManager : MonoBehaviour
         public int level;
     }
 
+    [Serializable]
+    public class UpgradeSaveEntry
+    {
+        public string upgradeId;
+        public int level;
+    }
+
     [Header("Available Upgrades")]
     [SerializeField] private List<UpgradeRuntimeData> upgrades = new List<UpgradeRuntimeData>();
 
@@ -107,28 +114,118 @@ public class UpgradeManager : MonoBehaviour
 
         data.level++;
 
-        ApplyUpgradeEffect(upgrade);
+        ApplyAllUpgradeEffects();
 
         GameEvents.RaiseUpgradeLevelChanged(upgrade, data.level);
     }
 
-    private void ApplyUpgradeEffect(UpgradeDefinition upgrade)
+    public List<UpgradeSaveEntry> CaptureSaveData()
     {
-        switch (upgrade.upgradeType)
-        {
-            case UpgradeType.Damage:
-                if (playerStats != null)
-                {
-                    playerStats.AddDamageBonus(Mathf.RoundToInt(upgrade.valuePerLevel));
-                }
-                break;
+        List<UpgradeSaveEntry> saveEntries = new List<UpgradeSaveEntry>();
 
-            case UpgradeType.AttackSpeed:
-                if (autoCombatController != null)
+        for (int i = 0; i < upgrades.Count; i++)
+        {
+            if (upgrades[i].upgrade == null)
+            {
+                continue;
+            }
+
+            saveEntries.Add(new UpgradeSaveEntry
+            {
+                upgradeId = upgrades[i].upgrade.upgradeId,
+                level = upgrades[i].level
+            });
+        }
+
+        return saveEntries;
+    }
+
+    public void LoadFromSaveData(List<UpgradeSaveEntry> saveEntries)
+    {
+        for (int i = 0; i < upgrades.Count; i++)
+        {
+            upgrades[i].level = 0;
+        }
+
+        if (saveEntries != null)
+        {
+            for (int i = 0; i < saveEntries.Count; i++)
+            {
+                UpgradeRuntimeData data = GetRuntimeDataById(saveEntries[i].upgradeId);
+
+                if (data == null || data.upgrade == null)
                 {
-                    autoCombatController.AddAttackSpeedBonus(upgrade.valuePerLevel);
+                    Debug.LogWarning($"Could not find upgrade with ID {saveEntries[i].upgradeId} while loading.");
+                    continue;
                 }
-                break;
+
+                data.level = Mathf.Clamp(saveEntries[i].level, 0, data.upgrade.maxLevel);
+            }
+        }
+
+        ApplyAllUpgradeEffects();
+        BroadcastAllUpgradeLevels();
+    }
+
+    public void ResetAllUpgrades()
+    {
+        for (int i = 0; i < upgrades.Count; i++)
+        {
+            upgrades[i].level = 0;
+        }
+
+        ApplyAllUpgradeEffects();
+        BroadcastAllUpgradeLevels();
+    }
+
+    private void ApplyAllUpgradeEffects()
+    {
+        int totalDamageBonus = 0;
+        float totalAttackSpeedBonus = 0f;
+
+        for (int i = 0; i < upgrades.Count; i++)
+        {
+            UpgradeDefinition upgrade = upgrades[i].upgrade;
+
+            if (upgrade == null)
+            {
+                continue;
+            }
+
+            switch (upgrade.upgradeType)
+            {
+                case UpgradeType.Damage:
+                    totalDamageBonus += Mathf.RoundToInt(upgrade.valuePerLevel * upgrades[i].level);
+                    break;
+
+                case UpgradeType.AttackSpeed:
+                    totalAttackSpeedBonus += upgrade.valuePerLevel * upgrades[i].level;
+                    break;
+            }
+        }
+
+        if (playerStats != null)
+        {
+            playerStats.SetUpgradeDamageBonus(totalDamageBonus);
+        }
+
+        if (autoCombatController != null)
+        {
+            autoCombatController.SetAttackSpeedBonus(totalAttackSpeedBonus);
+            autoCombatController.ForceBroadcastCombatStats();
+        }
+    }
+
+    private void BroadcastAllUpgradeLevels()
+    {
+        for (int i = 0; i < upgrades.Count; i++)
+        {
+            if (upgrades[i].upgrade == null)
+            {
+                continue;
+            }
+
+            GameEvents.RaiseUpgradeLevelChanged(upgrades[i].upgrade, upgrades[i].level);
         }
     }
 
@@ -142,6 +239,19 @@ public class UpgradeManager : MonoBehaviour
         for (int i = 0; i < upgrades.Count; i++)
         {
             if (upgrades[i].upgrade == upgrade)
+            {
+                return upgrades[i];
+            }
+        }
+
+        return null;
+    }
+
+    private UpgradeRuntimeData GetRuntimeDataById(string upgradeId)
+    {
+        for (int i = 0; i < upgrades.Count; i++)
+        {
+            if (upgrades[i].upgrade != null && upgrades[i].upgrade.upgradeId == upgradeId)
             {
                 return upgrades[i];
             }

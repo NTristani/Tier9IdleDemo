@@ -14,6 +14,7 @@ public class AutoCombatController : MonoBehaviour
     private float attackCooldown;
 
     public float AttacksPerSecond => baseAttacksPerSecond + attackSpeedBonus;
+    public float AttackSpeedBonus => attackSpeedBonus;
 
     private void Awake()
     {
@@ -55,6 +56,17 @@ public class AutoCombatController : MonoBehaviour
         }
 
         attackSpeedBonus += amount;
+        BroadcastCombatStats();
+    }
+
+    public void SetAttackSpeedBonus(float amount)
+    {
+        attackSpeedBonus = Mathf.Max(0f, amount);
+        BroadcastCombatStats();
+    }
+
+    public void ForceBroadcastCombatStats()
+    {
         BroadcastCombatStats();
     }
 

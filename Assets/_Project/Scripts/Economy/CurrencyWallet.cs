@@ -37,6 +37,12 @@ public class CurrencyWallet : MonoBehaviour
         GameEvents.RaiseCoinsChanged(coins);
     }
 
+    public void SetCoins(int amount)
+    {
+        coins = Mathf.Max(0, amount);
+        GameEvents.RaiseCoinsChanged(coins);
+    }
+
     public bool TrySpendCoins(int amount)
     {
         if (amount <= 0)

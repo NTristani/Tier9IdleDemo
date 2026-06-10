@@ -92,6 +92,34 @@ public class QuestManager : MonoBehaviour
         BroadcastQuestProgress();
     }
 
+    public void LoadProgress(int savedCurrentKills, bool savedIsComplete, bool savedRewardClaimed)
+    {
+        currentKills = Mathf.Max(0, savedCurrentKills);
+
+        if (activeQuest != null)
+        {
+            currentKills = Mathf.Min(currentKills, activeQuest.requiredKills);
+        }
+
+        isQuestComplete = savedIsComplete;
+        rewardClaimed = savedRewardClaimed;
+
+        if (activeQuest != null && currentKills >= activeQuest.requiredKills)
+        {
+            isQuestComplete = true;
+        }
+
+        BroadcastQuestProgress();
+    }
+
+    public void ResetQuestProgress()
+    {
+        currentKills = 0;
+        isQuestComplete = false;
+        rewardClaimed = false;
+        BroadcastQuestProgress();
+    }
+
     private void BroadcastQuestProgress()
     {
         GameEvents.RaiseQuestProgressChanged(

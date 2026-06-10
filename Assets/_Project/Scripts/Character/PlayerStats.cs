@@ -15,6 +15,7 @@ public class PlayerStats : MonoBehaviour
     public int CurrentXp => currentXp;
     public int RequiredXp => GetRequiredXpForCurrentLevel();
     public int Damage => baseDamage + level + upgradeDamageBonus;
+    public int UpgradeDamageBonus => upgradeDamageBonus;
 
     private void OnEnable()
     {
@@ -62,6 +63,27 @@ public class PlayerStats : MonoBehaviour
         }
 
         upgradeDamageBonus += amount;
+        BroadcastStats();
+    }
+
+    public void SetUpgradeDamageBonus(int amount)
+    {
+        upgradeDamageBonus = Mathf.Max(0, amount);
+        BroadcastStats();
+    }
+
+    public void LoadProgress(int savedLevel, int savedXp)
+    {
+        level = Mathf.Max(1, savedLevel);
+        currentXp = Mathf.Max(0, savedXp);
+
+        int requiredXp = GetRequiredXpForCurrentLevel();
+
+        if (currentXp >= requiredXp)
+        {
+            currentXp = requiredXp - 1;
+        }
+
         BroadcastStats();
     }
 
