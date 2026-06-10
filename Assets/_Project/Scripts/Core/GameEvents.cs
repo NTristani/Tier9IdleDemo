@@ -8,6 +8,9 @@ public static class GameEvents
 
     public static event Action<QuestDefinition, int, bool, bool> QuestProgressChanged;
 
+    public static event Action<ItemDefinition, int> ItemCollected;
+    public static event Action<ItemDefinition, int> InventoryChanged;
+
     public static void RaisePlayerStatsChanged(int level, int currentXp, int requiredXp)
     {
         PlayerStatsChanged?.Invoke(level, currentXp, requiredXp);
@@ -30,5 +33,15 @@ public static class GameEvents
         bool rewardClaimed)
     {
         QuestProgressChanged?.Invoke(quest, currentKills, isComplete, rewardClaimed);
+    }
+
+    public static void RaiseItemCollected(ItemDefinition item, int amount)
+    {
+        ItemCollected?.Invoke(item, amount);
+    }
+
+    public static void RaiseInventoryChanged(ItemDefinition item, int newAmount)
+    {
+        InventoryChanged?.Invoke(item, newAmount);
     }
 }

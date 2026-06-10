@@ -108,6 +108,8 @@ public class Enemy : MonoBehaviour
     {
         currentHealth = 0;
 
+        TryDropMaterial();
+
         if (enemyDefinition != null)
         {
             GameEvents.RaiseEnemyKilled(
@@ -118,5 +120,32 @@ public class Enemy : MonoBehaviour
         }
 
         Destroy(gameObject);
+    }
+
+    private void TryDropMaterial()
+    {
+        if (enemyDefinition == null)
+        {
+            return;
+        }
+
+        if (enemyDefinition.materialDrop == null)
+        {
+            return;
+        }
+
+        float roll = UnityEngine.Random.value;
+
+        if (roll > enemyDefinition.materialDropChance)
+        {
+            return;
+        }
+
+        int minAmount = Mathf.Max(1, enemyDefinition.minMaterialAmount);
+        int maxAmount = Mathf.Max(minAmount, enemyDefinition.maxMaterialAmount);
+
+        int amount = UnityEngine.Random.Range(minAmount, maxAmount + 1);
+
+        GameEvents.RaiseItemCollected(enemyDefinition.materialDrop, amount);
     }
 }

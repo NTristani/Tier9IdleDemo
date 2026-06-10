@@ -15,4 +15,10 @@ public class EnemyDefinition : ScriptableObject
     [Header("Rewards")]
     public int xpReward = 5;
     public int coinReward = 2;
+
+    [Header("Material Drop")]
+    public ItemDefinition materialDrop;
+    [Range(0f, 1f)] public float materialDropChance = 0.75f;
+    public int minMaterialAmount = 1;
+    public int maxMaterialAmount = 2;
 }
