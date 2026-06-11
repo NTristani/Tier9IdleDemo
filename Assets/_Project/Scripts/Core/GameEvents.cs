@@ -14,6 +14,8 @@ public static class GameEvents
     public static event Action<int, float> CombatStatsChanged;
     public static event Action<UpgradeDefinition, int> UpgradeLevelChanged;
 
+    public static event Action<OfflineProgressResult> OfflineProgressApplied;
+
     public static void RaisePlayerStatsChanged(int level, int currentXp, int requiredXp)
     {
         PlayerStatsChanged?.Invoke(level, currentXp, requiredXp);
@@ -56,5 +58,10 @@ public static class GameEvents
     public static void RaiseUpgradeLevelChanged(UpgradeDefinition upgrade, int newLevel)
     {
         UpgradeLevelChanged?.Invoke(upgrade, newLevel);
+    }
+
+    public static void RaiseOfflineProgressApplied(OfflineProgressResult result)
+    {
+        OfflineProgressApplied?.Invoke(result);
     }
 }

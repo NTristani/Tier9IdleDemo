@@ -29,6 +29,7 @@ public class SaveManager : MonoBehaviour
     [SerializeField] private InventoryManager inventoryManager;
     [SerializeField] private QuestManager questManager;
     [SerializeField] private UpgradeManager upgradeManager;
+    [SerializeField] private OfflineProgressManager offlineProgressManager;
 
     [Header("Settings")]
     [SerializeField] private bool loadOnStart = true;
@@ -155,6 +156,18 @@ public class SaveManager : MonoBehaviour
         if (upgradeManager != null)
         {
             upgradeManager.LoadFromSaveData(saveData.upgrades);
+        }
+
+        bool offlineRewardsApplied = false;
+
+        if (offlineProgressManager != null)
+        {
+            offlineRewardsApplied = offlineProgressManager.ApplyOfflineProgressFromTimestamp(saveData.savedAtUtc);
+        }
+
+        if (offlineRewardsApplied)
+        {
+            SaveGame();
         }
 
         Debug.Log($"Game loaded from save created at UTC: {saveData.savedAtUtc}");

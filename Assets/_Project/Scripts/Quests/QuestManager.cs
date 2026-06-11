@@ -36,6 +36,11 @@ public class QuestManager : MonoBehaviour
 
     private void HandleEnemyKilled(string enemyId, int xpReward, int coinReward)
     {
+        AddEnemyKills(enemyId, 1);
+    }
+
+    public void AddEnemyKills(string enemyId, int killAmount)
+    {
         if (activeQuest == null || isQuestComplete)
         {
             return;
@@ -46,7 +51,12 @@ public class QuestManager : MonoBehaviour
             return;
         }
 
-        currentKills++;
+        if (killAmount <= 0)
+        {
+            return;
+        }
+
+        currentKills += killAmount;
 
         if (currentKills >= activeQuest.requiredKills)
         {
