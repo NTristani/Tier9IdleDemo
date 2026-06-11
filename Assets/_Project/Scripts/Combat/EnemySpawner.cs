@@ -8,15 +8,34 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] private EnemyDefinition enemyDefinition;
 
     [Header("Spawning")]
+    [SerializeField] private bool spawnOnStart = false;
     [SerializeField] private int maxEnemies = 5;
     [SerializeField] private float spawnInterval = 2f;
     [SerializeField] private Vector2 spawnAreaSize = new Vector2(6f, 2f);
 
     private readonly List<Enemy> activeEnemies = new List<Enemy>();
     private float spawnTimer;
+    private bool isSpawning;
+
+    private void Start()
+    {
+        if (spawnOnStart)
+        {
+            BeginSpawning();
+        }
+        else
+        {
+            StopSpawningAndDespawn();
+        }
+    }
 
     private void Update()
     {
+        if (!isSpawning)
+        {
+            return;
+        }
+
         CleanupMissingEnemies();
 
         if (activeEnemies.Count >= maxEnemies)
@@ -31,6 +50,32 @@ public class EnemySpawner : MonoBehaviour
             spawnTimer = 0f;
             SpawnEnemy();
         }
+    }
+
+    public void BeginSpawning()
+    {
+        isSpawning = true;
+        spawnTimer = spawnInterval;
+    }
+
+    public void StopSpawningAndDespawn()
+    {
+        isSpawning = false;
+        spawnTimer = 0f;
+        DespawnAll();
+    }
+
+    public void DespawnAll()
+    {
+        for (int i = activeEnemies.Count - 1; i >= 0; i--)
+        {
+            if (activeEnemies[i] != null)
+            {
+                Destroy(activeEnemies[i].gameObject);
+            }
+        }
+
+        activeEnemies.Clear();
     }
 
     private void SpawnEnemy()

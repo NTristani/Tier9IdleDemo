@@ -20,6 +20,7 @@ public class SaveManager : MonoBehaviour
         public List<InventoryManager.InventorySaveEntry> inventory = new List<InventoryManager.InventorySaveEntry>();
         public List<UpgradeManager.UpgradeSaveEntry> upgrades = new List<UpgradeManager.UpgradeSaveEntry>();
 
+        public string savedZone;
         public string savedAtUtc;
     }
 
@@ -30,6 +31,7 @@ public class SaveManager : MonoBehaviour
     [SerializeField] private QuestManager questManager;
     [SerializeField] private UpgradeManager upgradeManager;
     [SerializeField] private OfflineProgressManager offlineProgressManager;
+    [SerializeField] private WorldZoneManager worldZoneManager;
 
     [Header("Settings")]
     [SerializeField] private bool loadOnStart = true;
@@ -91,6 +93,15 @@ public class SaveManager : MonoBehaviour
         if (upgradeManager != null)
         {
             saveData.upgrades = upgradeManager.CaptureSaveData();
+        }
+
+        if (worldZoneManager != null)
+        {
+            saveData.savedZone = worldZoneManager.CurrentZone.ToString();
+        }
+        else
+        {
+            saveData.savedZone = GameZone.Town.ToString();
         }
 
         saveData.savedAtUtc = DateTime.UtcNow.ToString("o");
@@ -158,11 +169,27 @@ public class SaveManager : MonoBehaviour
             upgradeManager.LoadFromSaveData(saveData.upgrades);
         }
 
+        GameZone loadedZone = GameZone.Town;
+
+        if (!string.IsNullOrWhiteSpace(saveData.savedZone))
+        {
+            Enum.TryParse(saveData.savedZone, out loadedZone);
+        }
+
+        if (worldZoneManager != null)
+        {
+            worldZoneManager.LoadZone(loadedZone);
+        }
+
         bool offlineRewardsApplied = false;
 
-        if (offlineProgressManager != null)
+        if (offlineProgressManager != null && loadedZone == GameZone.CombatField)
         {
             offlineRewardsApplied = offlineProgressManager.ApplyOfflineProgressFromTimestamp(saveData.savedAtUtc);
+        }
+        else
+        {
+            Debug.Log("No offline combat rewards applied because the saved zone was Town.");
         }
 
         if (offlineRewardsApplied)

@@ -12,6 +12,7 @@ public class OfflineProgressManager : MonoBehaviour
     [SerializeField] private CurrencyWallet currencyWallet;
     [SerializeField] private InventoryManager inventoryManager;
     [SerializeField] private QuestManager questManager;
+    [SerializeField] private WorldZoneManager worldZoneManager;
 
     [Header("Offline Balance")]
     [SerializeField] private double minimumOfflineSeconds = 10;
@@ -56,6 +57,12 @@ public class OfflineProgressManager : MonoBehaviour
 
     public void SimulateDemoOfflineProgress()
     {
+        if (worldZoneManager != null && worldZoneManager.CurrentZone != GameZone.CombatField)
+        {
+            Debug.Log("Offline combat simulation is only available while in the combat field.");
+            return;
+        }
+
         OfflineProgressResult result = CalculateRewards(demoSimulatedSeconds);
         ApplyRewards(result);
     }

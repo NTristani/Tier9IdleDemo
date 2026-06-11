@@ -16,6 +16,13 @@ public static class GameEvents
 
     public static event Action<OfflineProgressResult> OfflineProgressApplied;
 
+    public static event Action<GameZone> ZoneChanged;
+
+    public static void RaiseZoneChanged(GameZone newZone)
+    {
+        ZoneChanged?.Invoke(newZone);
+    }
+
     public static void RaisePlayerStatsChanged(int level, int currentXp, int requiredXp)
     {
         PlayerStatsChanged?.Invoke(level, currentXp, requiredXp);
