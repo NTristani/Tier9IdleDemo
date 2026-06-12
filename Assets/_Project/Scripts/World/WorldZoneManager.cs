@@ -33,6 +33,7 @@ public class WorldZoneManager : MonoBehaviour
     [SerializeField] private GameObject combatActionPanel;
 
     public GameZone CurrentZone => currentZone;
+    private bool hasInitialized;
 
     private void Awake()
     {
@@ -49,7 +50,10 @@ public class WorldZoneManager : MonoBehaviour
 
     private void Start()
     {
-        SetZone(startingZone);
+        if (!hasInitialized)
+        {
+            SetZone(startingZone);
+        }
     }
 
     public void GoToTown()
@@ -69,6 +73,7 @@ public class WorldZoneManager : MonoBehaviour
 
     private void SetZone(GameZone zone)
     {
+        hasInitialized = true;
         currentZone = zone;
 
         switch (zone)

@@ -13,12 +13,28 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] private float spawnInterval = 2f;
     [SerializeField] private Vector2 spawnAreaSize = new Vector2(6f, 2f);
 
+    [Header("Debug")]
+    [SerializeField] private bool logStateChanges = false;
+
     private readonly List<Enemy> activeEnemies = new List<Enemy>();
     private float spawnTimer;
     private bool isSpawning;
+    private bool hasBeenControlledExternally;
+
+    public bool IsSpawning => isSpawning;
 
     private void Start()
     {
+        /*
+         * Important:
+         * If WorldZoneManager or SaveManager already called BeginSpawning()
+         * before this Start() method runs, do not turn spawning off again.
+         */
+        if (hasBeenControlledExternally)
+        {
+            return;
+        }
+
         if (spawnOnStart)
         {
             BeginSpawning();
@@ -54,15 +70,30 @@ public class EnemySpawner : MonoBehaviour
 
     public void BeginSpawning()
     {
+        hasBeenControlledExternally = true;
         isSpawning = true;
+
+        // Spawn quickly after entering the field instead of waiting a full interval.
         spawnTimer = spawnInterval;
+
+        if (logStateChanges)
+        {
+            Debug.Log($"{name} began spawning.");
+        }
     }
 
     public void StopSpawningAndDespawn()
     {
+        hasBeenControlledExternally = true;
         isSpawning = false;
         spawnTimer = 0f;
+
         DespawnAll();
+
+        if (logStateChanges)
+        {
+            Debug.Log($"{name} stopped spawning and despawned enemies.");
+        }
     }
 
     public void DespawnAll()
