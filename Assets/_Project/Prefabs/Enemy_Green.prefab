@@ -251,6 +251,9 @@ MonoBehaviour:
   spriteRenderer: {fileID: 0}
   hitFlashColor: {r: 1, g: 1, b: 1, a: 1}
   hitFlashDuration: 0.08
+  deathAnimationDuration: 0.15
+  deathScaleMultiplier: 1.12
+  fadeOnDeath: 1
   currentHealth: 0
 --- !u!50 &2466274233470536409
 Rigidbody2D:

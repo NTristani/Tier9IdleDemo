@@ -12,13 +12,24 @@ public class Enemy : MonoBehaviour
     [SerializeField] private Color hitFlashColor = Color.white;
     [SerializeField] private float hitFlashDuration = 0.08f;
 
+    [Header("Death Animation")]
+    [SerializeField] private float deathAnimationDuration = 0.22f;
+    [SerializeField] private float deathScaleMultiplier = 1.25f;
+    [SerializeField] private bool fadeOnDeath = true;
+
     [Header("Runtime")]
     [SerializeField] private int currentHealth;
 
     private Color originalColor;
+    private Vector3 originalScale;
     private Coroutine flashRoutine;
+    private bool isDying;
 
-    public bool IsAlive => currentHealth > 0;
+    private Rigidbody2D rb;
+    private EnemyMovement enemyMovement;
+    private Collider2D[] colliders;
+
+    public bool IsAlive => currentHealth > 0 && !isDying;
     public EnemyDefinition Definition => enemyDefinition;
     public int CurrentHealth => currentHealth;
     public int MaxHealth => enemyDefinition != null ? enemyDefinition.maxHealth : 1;
@@ -36,6 +47,12 @@ public class Enemy : MonoBehaviour
         {
             originalColor = spriteRenderer.color;
         }
+
+        originalScale = transform.localScale;
+
+        rb = GetComponent<Rigidbody2D>();
+        enemyMovement = GetComponent<EnemyMovement>();
+        colliders = GetComponentsInChildren<Collider2D>();
     }
 
     private void Start()
@@ -53,7 +70,15 @@ public class Enemy : MonoBehaviour
             return;
         }
 
+        isDying = false;
         currentHealth = enemyDefinition.maxHealth;
+        transform.localScale = originalScale;
+
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.color = originalColor;
+        }
+
         HealthChanged?.Invoke(currentHealth, MaxHealth);
     }
 
@@ -65,7 +90,7 @@ public class Enemy : MonoBehaviour
         }
 
         int finalDamage = Mathf.Max(1, damage);
-        currentHealth -= finalDamage;
+        currentHealth = Mathf.Max(0, currentHealth - finalDamage);
 
         HealthChanged?.Invoke(currentHealth, MaxHealth);
 
@@ -84,7 +109,7 @@ public class Enemy : MonoBehaviour
 
     private void PlayHitFlash()
     {
-        if (spriteRenderer == null)
+        if (spriteRenderer == null || isDying)
         {
             return;
         }
@@ -101,12 +126,23 @@ public class Enemy : MonoBehaviour
     {
         spriteRenderer.color = hitFlashColor;
         yield return new WaitForSeconds(hitFlashDuration);
-        spriteRenderer.color = originalColor;
+
+        if (!isDying && spriteRenderer != null)
+        {
+            spriteRenderer.color = originalColor;
+        }
     }
 
     private void Die()
     {
+        if (isDying)
+        {
+            return;
+        }
+
+        isDying = true;
         currentHealth = 0;
+        HealthChanged?.Invoke(currentHealth, MaxHealth);
 
         TryDropMaterial();
 
@@ -117,6 +153,69 @@ public class Enemy : MonoBehaviour
                 enemyDefinition.xpReward,
                 enemyDefinition.coinReward
             );
+        }
+
+        DisableEnemyInteraction();
+
+        StartCoroutine(DeathAnimationRoutine());
+    }
+
+    private void DisableEnemyInteraction()
+    {
+        if (enemyMovement != null)
+        {
+            enemyMovement.enabled = false;
+        }
+
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector2.zero;
+            rb.angularVelocity = 0f;
+        }
+
+        if (colliders == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            if (colliders[i] != null)
+            {
+                colliders[i].enabled = false;
+            }
+        }
+    }
+
+    private IEnumerator DeathAnimationRoutine()
+    {
+        float timer = 0f;
+
+        Vector3 startScale = transform.localScale;
+        Vector3 targetScale = startScale * deathScaleMultiplier;
+
+        Color startColor = spriteRenderer != null ? spriteRenderer.color : Color.white;
+
+        while (timer < deathAnimationDuration)
+        {
+            timer += Time.deltaTime;
+
+            float t = Mathf.Clamp01(timer / deathAnimationDuration);
+
+            transform.localScale = Vector3.Lerp(startScale, targetScale, t);
+
+            if (fadeOnDeath && spriteRenderer != null)
+            {
+                float alpha = Mathf.Lerp(startColor.a, 0f, t);
+                spriteRenderer.color = new Color(
+                    startColor.r,
+                    startColor.g,
+                    startColor.b,
+                    alpha
+                );
+            }
+
+            yield return null;
         }
 
         Destroy(gameObject);
