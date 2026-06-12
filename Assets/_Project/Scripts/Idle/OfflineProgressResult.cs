@@ -14,6 +14,8 @@ public class OfflineProgressResult
     public ItemDefinition materialItem;
     public int materialAmount;
 
+    public bool HasOfflineTime => simulatedSecondsUsed >= 1;
+
     public bool HasRewards =>
         enemiesDefeated > 0 ||
         xpGained > 0 ||

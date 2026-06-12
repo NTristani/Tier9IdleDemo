@@ -15,7 +15,7 @@ public class OfflineProgressManager : MonoBehaviour
     [SerializeField] private WorldZoneManager worldZoneManager;
 
     [Header("Offline Balance")]
-    [SerializeField] private double minimumOfflineSeconds = 10;
+    [SerializeField] private double minimumOfflineSeconds = 1;
     [SerializeField] private double maxOfflineHours = 8;
     [SerializeField] private float offlineEfficiency = 0.75f;
     [SerializeField] private float respawnDelaySeconds = 0.5f;
@@ -41,18 +41,21 @@ public class OfflineProgressManager : MonoBehaviour
         }
 
         DateTime nowUtc = DateTime.UtcNow;
-        double secondsAway = (nowUtc - savedTimeUtc).TotalSeconds;
+        double rawSecondsAway = (nowUtc - savedTimeUtc).TotalSeconds;
 
-        if (secondsAway < minimumOfflineSeconds)
+        // Round milliseconds up to the nearest whole second.
+        double roundedSecondsAway = Math.Ceiling(Math.Max(0, rawSecondsAway));
+
+        if (roundedSecondsAway < minimumOfflineSeconds)
         {
-            Debug.Log($"Offline time was only {secondsAway:0.0}s. No offline rewards applied.");
+            Debug.Log($"Offline time was only {roundedSecondsAway:0}s. No offline progress applied.");
             return false;
         }
 
-        OfflineProgressResult result = CalculateRewards(secondsAway);
+        OfflineProgressResult result = CalculateRewards(roundedSecondsAway);
         ApplyRewards(result);
 
-        return result.HasRewards;
+        return result.HasOfflineTime;
     }
 
     public void SimulateDemoOfflineProgress()
@@ -67,11 +70,11 @@ public class OfflineProgressManager : MonoBehaviour
         ApplyRewards(result);
     }
 
-    private OfflineProgressResult CalculateRewards(double realSecondsAway)
+    private OfflineProgressResult CalculateRewards(double secondsAway)
     {
         OfflineProgressResult result = new OfflineProgressResult
         {
-            realSecondsAway = realSecondsAway
+            realSecondsAway = secondsAway
         };
 
         if (offlineEnemyDefinition == null)
@@ -87,7 +90,11 @@ public class OfflineProgressManager : MonoBehaviour
         }
 
         double maxSeconds = maxOfflineHours * 60.0 * 60.0;
-        double secondsUsed = Math.Min(realSecondsAway, maxSeconds);
+
+        // Clamp to max offline duration, then round up to nearest second.
+        double secondsUsed = Math.Ceiling(Math.Min(secondsAway, maxSeconds));
+        secondsUsed = Math.Max(1, secondsUsed);
+
         result.simulatedSecondsUsed = secondsUsed;
 
         int damage = Mathf.Max(1, playerStats.Damage);
@@ -103,16 +110,19 @@ public class OfflineProgressManager : MonoBehaviour
             return result;
         }
 
-        int kills = Mathf.FloorToInt((float)((secondsUsed / secondsPerKill) * offlineEfficiency));
+        double estimatedKills = (secondsUsed / secondsPerKill) * offlineEfficiency;
 
-        if (kills <= 0)
+        // We keep actual defeated enemies whole because quest progress uses whole kills.
+        int wholeKills = Mathf.FloorToInt((float)estimatedKills);
+
+        if (wholeKills <= 0)
         {
             return result;
         }
 
-        result.enemiesDefeated = kills;
-        result.xpGained = kills * offlineEnemyDefinition.xpReward;
-        result.coinsGained = kills * offlineEnemyDefinition.coinReward;
+        result.enemiesDefeated = wholeKills;
+        result.xpGained = wholeKills * offlineEnemyDefinition.xpReward;
+        result.coinsGained = wholeKills * offlineEnemyDefinition.coinReward;
 
         if (offlineEnemyDefinition.materialDrop != null)
         {
@@ -120,7 +130,7 @@ public class OfflineProgressManager : MonoBehaviour
                 (offlineEnemyDefinition.minMaterialAmount + offlineEnemyDefinition.maxMaterialAmount) * 0.5f;
 
             int materialAmount = Mathf.FloorToInt(
-                kills *
+                wholeKills *
                 offlineEnemyDefinition.materialDropChance *
                 averageDropAmount
             );
@@ -134,7 +144,7 @@ public class OfflineProgressManager : MonoBehaviour
 
     private void ApplyRewards(OfflineProgressResult result)
     {
-        if (result == null || !result.HasRewards)
+        if (result == null || !result.HasOfflineTime)
         {
             return;
         }
@@ -159,10 +169,13 @@ public class OfflineProgressManager : MonoBehaviour
             questManager.AddEnemyKills(offlineEnemyDefinition.enemyId, result.enemiesDefeated);
         }
 
+        // Raise the event even if the time was too short to earn a full kill.
+        // This lets the popup show exactly how much time passed.
         GameEvents.RaiseOfflineProgressApplied(result);
 
         Debug.Log(
-            $"Offline progress applied: {result.enemiesDefeated} kills, " +
+            $"Offline progress applied for {result.simulatedSecondsUsed:0}s: " +
+            $"{result.enemiesDefeated} kills, " +
             $"{result.xpGained} XP, {result.coinsGained} coins, " +
             $"{result.materialAmount} materials."
         );

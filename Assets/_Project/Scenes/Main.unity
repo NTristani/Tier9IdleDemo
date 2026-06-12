@@ -8763,7 +8763,7 @@ MonoBehaviour:
   inventoryManager: {fileID: 80966919}
   questManager: {fileID: 1612226091}
   worldZoneManager: {fileID: 583789057}
-  minimumOfflineSeconds: 10
+  minimumOfflineSeconds: 1
   maxOfflineHours: 8
   offlineEfficiency: 0.75
   respawnDelaySeconds: 0.5
