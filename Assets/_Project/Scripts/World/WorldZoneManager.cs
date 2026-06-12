@@ -15,6 +15,7 @@ public class WorldZoneManager : MonoBehaviour
     [Header("Player")]
     [SerializeField] private Transform player;
     [SerializeField] private AutoCombatController autoCombatController;
+    [SerializeField] private PlayerMovement2D playerMovement;
 
     [Header("Camera")]
     [SerializeField] private Camera mainCamera;
@@ -32,6 +33,10 @@ public class WorldZoneManager : MonoBehaviour
     [SerializeField] private GameObject townActionPanel;
     [SerializeField] private GameObject combatActionPanel;
 
+    [Header("Movement Bounds")]
+    [SerializeField] private Vector2 townXBounds = new Vector2(-11f, -5f);
+    [SerializeField] private Vector2 combatXBounds = new Vector2(-3.5f, 3.5f);
+
     public GameZone CurrentZone => currentZone;
     private bool hasInitialized;
 
@@ -45,6 +50,11 @@ public class WorldZoneManager : MonoBehaviour
         if (autoCombatController == null && player != null)
         {
             autoCombatController = player.GetComponent<AutoCombatController>();
+        }
+
+        if (playerMovement == null && player != null)
+        {
+            playerMovement = player.GetComponent<PlayerMovement2D>();
         }
     }
 
@@ -95,6 +105,12 @@ public class WorldZoneManager : MonoBehaviour
         MovePlayerTo(townPlayerAnchor);
         MoveCameraTo(townCameraAnchor);
 
+        if (playerMovement != null)
+        {
+            playerMovement.SetCanMove(true);
+            playerMovement.SetXBounds(townXBounds.x, townXBounds.y);
+        }
+
         if (autoCombatController != null)
         {
             autoCombatController.enabled = false;
@@ -110,13 +126,19 @@ public class WorldZoneManager : MonoBehaviour
         if (combatActionPanel != null)
         {
             combatActionPanel.SetActive(false);
-        }
+        }   
     }
 
     private void EnterCombatField()
     {
         MovePlayerTo(combatPlayerAnchor);
         MoveCameraTo(combatCameraAnchor);
+
+        if (playerMovement != null)
+        {
+            playerMovement.SetCanMove(true);
+            playerMovement.SetXBounds(combatXBounds.x, combatXBounds.y);
+        }
 
         if (autoCombatController != null)
         {
@@ -134,6 +156,7 @@ public class WorldZoneManager : MonoBehaviour
         {
             combatActionPanel.SetActive(true);
         }
+
     }
 
     private void MovePlayerTo(Transform anchor)

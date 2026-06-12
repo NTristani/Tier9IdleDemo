@@ -3676,6 +3676,7 @@ MonoBehaviour:
   currentZone: 0
   player: {fileID: 1108944852}
   autoCombatController: {fileID: 1108944855}
+  playerMovement: {fileID: 1108944858}
   mainCamera: {fileID: 165829654}
   townCameraAnchor: {fileID: 1108221438}
   combatCameraAnchor: {fileID: 27734413}
@@ -3685,6 +3686,8 @@ MonoBehaviour:
   - {fileID: 1039643457}
   townActionPanel: {fileID: 103932866}
   combatActionPanel: {fileID: 569168819}
+  townXBounds: {x: -11, y: -5}
+  combatXBounds: {x: -3.5, y: 3.5}
 --- !u!4 &583789058
 Transform:
   m_ObjectHideFlags: 0
@@ -7291,6 +7294,7 @@ GameObject:
   - component: {fileID: 1108944855}
   - component: {fileID: 1108944854}
   - component: {fileID: 1108944853}
+  - component: {fileID: 1108944858}
   m_Layer: 0
   m_Name: PlayerCharacter
   m_TagString: Player
@@ -7382,7 +7386,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDamping: 0
   m_AngularDamping: 0.05
-  m_GravityScale: 1
+  m_GravityScale: 0
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -7393,7 +7397,7 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
-  m_Constraints: 0
+  m_Constraints: 4
 --- !u!114 &1108944855
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7489,6 +7493,25 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &1108944858
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1108944851}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2274ec83db9f5ee4586063c374529cf4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement2D
+  moveSpeed: 4
+  canMove: 1
+  useXBounds: 1
+  minX: -10
+  maxX: 10
+  spriteRenderer: {fileID: 1108944857}
+  flipSpriteBasedOnDirection: 1
 --- !u!1 &1116492461
 GameObject:
   m_ObjectHideFlags: 0
