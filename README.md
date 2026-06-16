@@ -15,7 +15,7 @@ https://github.com/NTristani/Tier9IdleDemo
 https://github.com/NTristani/Tier9IdleDemo/releases
 
 **Short Demo Video:**
-
+https://drive.google.com/file/d/1sEv8tvSGvAS-KfYg8LE9hJF5SRbiL6Fx/view?usp=sharing
 
 ---
 
